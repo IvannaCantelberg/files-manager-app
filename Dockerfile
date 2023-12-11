@@ -21,20 +21,21 @@ RUN apt-get update -y && apt-get install -y \
     libpng-dev 
 
 # PHP Extension
-RUN docker-php-ext-install gettext intl pdo_mysql gd zip
+RUN docker-php-ext-install gettext intl pdo_mysql gd
 
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd 
-
-# composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer install --no-scripts --no-autoloader --no-dev
-
 
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+
+# composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN composer install --no-scripts --no-autoloader --no-dev
+
 
 # Copy the application code
 COPY . /var/www/html
@@ -42,9 +43,6 @@ COPY . /var/www/html
 # Set the working directory
 WORKDIR /var/www/html
 
-
-# Install project dependencies
-RUN composer install
 
 # Generate optimized autoload files
 RUN composer dump-autoload --optimize
