@@ -5,7 +5,7 @@ WORKDIR /var/www/html
 COPY 'laravel-app/.env.example' ./.env
 
 # Arguments defined in docker-compose.yml
-# ARG user
+ARG user
 ARG uid
 RUN useradd  -o -u ${uid} -g www-data -m -s /bin/bash www
 
