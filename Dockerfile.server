@@ -1,8 +1,11 @@
 FROM php:8.1.0-apache
 # Set the working directory
 WORKDIR /var/www/html
+#copy environment file
+COPY 'laravel-app/.env.example' ./.env
 
-# RUN usermod -u 1000 www-data
+
+RUN usermod -u 1000 www-data
 
 # Mod Rewrite
 RUN a2enmod rewrite
@@ -27,9 +30,15 @@ RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd 
 
 
+
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+ENV APP_HOST=127.0.0.1
+
+COPY app.conf /etc/apache2/sites-available/000-default.conf
+
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
 
 # Copy the application code
 COPY 'laravel-app' .
@@ -45,8 +54,7 @@ RUN composer install
 # Generate optimized autoload files
 RUN composer dump-autoload --optimize
 
-#copy environment file
-COPY 'laravel-app/.env.example' ./.env
+
 
 RUN php artisan key:generate --ansi
 
