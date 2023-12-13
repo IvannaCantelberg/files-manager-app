@@ -1,16 +1,8 @@
 services:
   server:
-    container_name: server 
-    # user: 1000:1000   
-    build: 
-      args:
-          user: ivann
-          uid: 1000
-      context: .
-      dockerfile: ./Dockerfile.server
-    environment:
-        - APACHE_RUN_USER=www-data
-        - APACHE_RUN_GROUP=www-data 
+    container_name: server
+    user: 1000:1000
+    build: .
     volumes:
       - ./laravel-app:/var/www/html
       - /var/www/html/vendor
@@ -20,6 +12,29 @@ services:
       - mysql_db
     links:
       - mysql_db
+
+      
+  # server:
+  #   container_name: server 
+  #   # user: 1000:1000   
+  #   build: 
+  #     args:
+  #         user: ivanna
+  #         uid: 1000
+  #     context: . 
+  #     dockerfile: ./Dockerfile.server
+  #   environment:
+  #       - APACHE_RUN_USER=www-data
+  #       - APACHE_RUN_GROUP=www-data 
+  #   volumes:
+  #     - ./laravel-app:/var/www/html
+  #     - /var/www/html/vendor
+  #   ports:
+  #     - 8000:8000
+  #   depends_on:
+  #     - mysql_db
+  #   links:
+  #     - mysql_db
 
   
   mysql_db:
@@ -38,13 +53,13 @@ services:
     environment:
       - PMA_ARBITRARY=1
     
-  client:
-    build: 
-      context: .
-      dockerfile: ./Dockerfile.client
-    container_name: client
-    volumes:
-      - ./laravel-app:/var/www/html
-      - /var/www/html/node_modules
-    depends_on:
-      - "server"
+  # client:
+  #   build: 
+  #     context: .
+  #     dockerfile: ./Dockerfile.client
+  #   container_name: client
+  #   volumes:
+  #     - ./laravel-app:/var/www/html
+  #     - /var/www/html/node_modules
+  #   depends_on:
+  #     - "server"
