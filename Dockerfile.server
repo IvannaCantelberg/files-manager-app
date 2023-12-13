@@ -1,6 +1,14 @@
 FROM php:8.1.0-apache
 WORKDIR /var/www/html
 
+# create a new linux user group called 'developer' with an arbitrary group id of '1001'
+RUN groupadd -g 1000 developer
+
+# create a new user called developer and add it to this group
+RUN useradd -u 1000 -g developer developer
+
+
+
 # Mod Rewrite
 RUN a2enmod rewrite
 
@@ -30,6 +38,9 @@ RUN composer install
 # Generate optimized autoload files
 RUN composer dump-autoload --optimize     
 
+# change the owner and group of the current working directory to developer
+COPY --chown=developer:developer . /var/www/html
+
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 ENV APP_HOST=127.0.0.1  
@@ -57,4 +68,4 @@ RUN php artisan key:generate --ansi
 
 RUN php artisan storage:link
 
-USER 1000
+USER developer
