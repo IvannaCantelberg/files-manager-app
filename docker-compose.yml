@@ -55,13 +55,13 @@ services:
     environment:
       - PMA_ARBITRARY=1
     
-  # client:
-  #   build: 
-  #     context: .
-  #     dockerfile: ./Dockerfile.client
-  #   container_name: client
-  #   volumes:
-  #     - ./laravel-app:/var/www/html
-  #     - /var/www/html/node_modules
-  #   depends_on:
-  #     - "server"
+  client:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile.client
+    container_name: client
+    volumes:
+      - ./laravel-app:/var/www/html
+      - /var/www/html/node_modules
+    depends_on:
+      - "server"

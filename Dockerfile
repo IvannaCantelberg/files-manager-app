@@ -69,3 +69,17 @@ RUN php artisan key:generate --ansi
 RUN php artisan storage:link
 
 USER developer
+
+#  Client
+
+FROM node:20-alpine as node
+
+WORKDIR /var/www/html
+
+COPY './laravel-app/package.json' .
+
+RUN npm install
+
+COPY . .
+
+CMD npm run dev
