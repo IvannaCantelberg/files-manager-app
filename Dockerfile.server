@@ -1,16 +1,8 @@
 FROM php:8.1.0-apache
-# Set the working directory
 WORKDIR /var/www/html
-#copy environment file
-COPY 'laravel-app/.env.example' ./.env
 
-# Arguments defined in docker-compose.yml
-ARG user
-ARG uid
-RUN useradd  -o -u ${uid} -g www-data -m -s /bin/bash www
-
-
-
+# Mod Rewrite
+RUN a2enmod rewrite
 
 # Linux Library
 RUN apt-get update -y && apt-get install -y \
@@ -24,20 +16,23 @@ RUN apt-get update -y && apt-get install -y \
     libjpeg62-turbo-dev \
     libpng-dev 
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# # Copy the application code
+COPY 'laravel-app' .
 
-# PHP Extension
-RUN docker-php-ext-install gettext intl pdo_mysql gd
+# #copy environment file
+COPY 'laravel-app/.env.example' ./.env
 
-RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd 
+# # composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
-# Mod Rewrite
-RUN a2enmod rewrite
+RUN composer install 
+
+# Generate optimized autoload files
+RUN composer dump-autoload --optimize     
+
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-ENV APP_HOST=127.0.0.1
+ENV APP_HOST=127.0.0.1  
 
 COPY app.conf /etc/apache2/sites-available/000-default.conf
 
@@ -48,32 +43,13 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # changing 80 to port 8000 for our application inside the container, because as a regular user we cannot bind to system ports.
 RUN sed -s -i -e "s/80/8000/" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 
-# Create system user to run Composer and Artisan Commands
-RUN useradd -G www-data,root -u $uid -d /home/$user $user
-RUN mkdir -p /home/$user/.composer && \
-    chown -R $user:$user /home/$user
-
-# Copy the application code
-COPY 'laravel-app' .
-
-# allow the storage as well as logs to be read/writable by the web server(apache)
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Set permissions
-# RUN chown -R ${user}:${user} /var/www/html/storage /var/www/html/bootstrap/cache
-
-# composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 
+# PHP Extension
+RUN docker-php-ext-install gettext intl pdo_mysql gd
 
-RUN composer install 
-
-# Installing dependencies from lock file (including require-dev)
-# RUN composer update
-
-# Generate optimized autoload files
-RUN composer dump-autoload --optimize
+RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd 
 
 
 
@@ -81,13 +57,4 @@ RUN php artisan key:generate --ansi
 
 RUN php artisan storage:link
 
-
-
-USER www
-
-# EXPOSE 8000
-
-# Start the Apache server
-# CMD ["apache2-foreground"]
-
-
+USER 1000

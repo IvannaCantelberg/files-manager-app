@@ -2,7 +2,9 @@ services:
   server:
     container_name: server
     user: 1000:1000
-    build: .
+    build:
+      context: . 
+      dockerfile: ./Dockerfile.server
     volumes:
       - ./laravel-app:/var/www/html
       - /var/www/html/vendor
