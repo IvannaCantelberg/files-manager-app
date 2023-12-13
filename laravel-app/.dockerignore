@@ -1,0 +1,13 @@
+# node modules and logs
+node_modules
+*/node_modules
+npm-debug.log
+
+/.idea/
+/.scannerwork/
+/production/
+/.gitignore
+/.gitlab-ci.yml
+/.npmignore
+/.stackblitzrc
+/.travis.yml

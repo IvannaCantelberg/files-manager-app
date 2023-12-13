@@ -1,0 +1,11 @@
+FROM node:20-alpine as node
+
+WORKDIR /var/www/html
+
+COPY './laravel-app/package.json' .
+
+RUN npm install
+
+COPY . .
+
+CMD npm run dev

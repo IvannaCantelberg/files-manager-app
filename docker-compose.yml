@@ -1,12 +1,18 @@
 services:
-  laravel-docker:
-    container_name: laravel-docker
+  server:
+    container_name: server
     user: 1000:1000
     build: .
     volumes:
       - ./laravel-app:/var/www/html
+      - /var/www/html/vendor
     ports:
       - 9000:80
+    depends_on:
+      - mysql_db
+    links:
+      - mysql_db
+
   
   mysql_db:
     image: mysql:latest
@@ -23,3 +29,14 @@ services:
       - 9001:80
     environment:
       - PMA_ARBITRARY=1
+    
+  client:
+    build: 
+      context: .
+      dockerfile:  ./Dockerfile.client
+    container_name: client
+    volumes:
+      - ./laravel-app:/var/www/html
+      - /var/www/html/node_modules
+    depends_on:
+      - "server"
