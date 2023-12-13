@@ -1,11 +1,14 @@
 FROM php:8.1.0-apache
 WORKDIR /var/www/html
 
+ENV user=developer
+ENV uid=1000
+
 # create a new linux user group called 'developer' with an arbitrary group id of '1000'
-RUN groupadd -g 1000 developer
+RUN groupadd -g ${uid} ${user}
 
 # create a new user called developer and add it to this group
-RUN useradd -u 1000 -g developer developer
+RUN useradd -u ${uid} -g ${user} ${user}
 
 
 
@@ -22,13 +25,18 @@ RUN apt-get update -y && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
-    libpng-dev 
+    libpng-dev  
 
 # # Copy the application code
 COPY 'laravel-app' .
 
 # #copy environment file
 COPY 'laravel-app/.env.example' ./.env
+
+# Create system user to run Composer and Artisan Commands
+# RUN useradd -G www-data,root -u ${uid} -d /home/${user} ${user}
+RUN mkdir -p /home/${user}/.composer && \
+    chown -R ${user}:${user} /home/${user}
 
 # # composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
@@ -39,7 +47,7 @@ RUN composer install
 RUN composer dump-autoload --optimize     
 
 # change the owner and group of the current working directory to developer
-COPY --chown=developer:developer . /var/www/html
+COPY --chown=${user}:${user} . /var/www/html
 
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
@@ -62,10 +70,15 @@ RUN docker-php-ext-install gettext intl pdo_mysql gd
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd 
 
-
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan route:clear \
+    && php artisan config:cache \
+    && php artisan config:clear \
+    && php artisan optimize
 
 RUN php artisan key:generate --ansi
 
 RUN php artisan storage:link
 
-USER developer
+USER ${user}
