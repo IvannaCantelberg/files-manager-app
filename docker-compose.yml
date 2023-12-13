@@ -1,15 +1,21 @@
 services:
   server:
-    container_name: server
-    user: 1000:1000
+    container_name: server 
+    # user: 1000:1000   
     build: 
+      args:
+          user: ivann
+          uid: 1000
       context: .
       dockerfile: ./Dockerfile.server
+    environment:
+        - APACHE_RUN_USER=www-data
+        - APACHE_RUN_GROUP=www-data 
     volumes:
       - ./laravel-app:/var/www/html
       - /var/www/html/vendor
     ports:
-      - 9000:80
+      - 8000:8000
     depends_on:
       - mysql_db
     links:
