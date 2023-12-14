@@ -45,3 +45,6 @@ services:
       - /var/www/html/node_modules
     depends_on:
       - "server"
+
+volumes:
+  mysql_db:
