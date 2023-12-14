@@ -62,6 +62,8 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # changing 80 to port 8000 for our application inside the container, because as a regular user we cannot bind to system ports.
 RUN sed -s -i -e "s/80/8000/" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 
+# RUN a2enmod headers \
+#     && sed -ri -e 's/^([ \t]*)(<\/VirtualHost>)/\1\tHeader set Access-Control-Allow-Origin "*"\n\1\2/g' /etc/apache2/sites-available/*.conf
 
 
 # PHP Extension
@@ -69,6 +71,12 @@ RUN docker-php-ext-install gettext intl pdo_mysql gd
 
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd 
+
+
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
 
 RUN php artisan config:cache \
     && php artisan route:cache \
